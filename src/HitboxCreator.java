@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -20,13 +21,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 @SuppressWarnings("serial")
 public class HitboxCreator extends JFrame{
 
 	private File file;
 	private BufferedImage image;
-	public Polygon poly = new Polygon(new int[]{}, new int[]{}, 0){
+	private String abs = "Absolute";
+	private String rel = "Relative/Ratio";
+	private String gen = "Generate Java HitBox Method";
+	private String tab = abs;
+	private Data data = new Data();
+	private Polygon poly = new Polygon(new int[]{}, new int[]{}, 0){
 		
 		@Override
 		public String toString() {
@@ -41,25 +49,7 @@ public class HitboxCreator extends JFrame{
 			return output;
 		}
 		
-		private double[] getRelativeX(int[] xpoints) {
-			
-			double rel[] = new double[xpoints.length];
-			
-			for (int i =0; i < xpoints.length; i++)
-				rel[i] = xpoints[i] / (double) image.getWidth();
-			
-			return rel;
-		}
 		
-		private double[] getRelativeY(int[] ypoints) {
-
-			double rel[] = new double[ypoints.length];
-			
-			for (int i =0; i < ypoints.length; i++)
-				rel[i] = ypoints[i] / (double) image.getHeight();
-			
-			return rel;
-		}
 		
 		public void addPoint(int x, int y) {
 			if (npoints + 1 > xpoints.length) {
@@ -100,22 +90,26 @@ public class HitboxCreator extends JFrame{
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
 		
-//		JFileChooser chooser = new JFileChooser();
-//		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-//		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
-//			file = chooser.getSelectedFile();
-//		}
-//		else{
-//			System.exit(0);
-//		}
-		
-		file = new File("src/testImage.png");
-		
-		try {
+		try{
+			file = new File("src/testImage.png");
 			image = ImageIO.read(file);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.exit(0);
+			JFileChooser chooser = new JFileChooser();
+			chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+			if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
+				file = chooser.getSelectedFile();
+			}
+			else{
+				System.exit(0);
+			}
+			
+			try {
+				image = ImageIO.read(file);
+			} catch (IOException e1) {
+				e.printStackTrace();
+				System.exit(0);
+			}
 		}
 		
 		class Pane extends JPanel{
@@ -129,6 +123,7 @@ public class HitboxCreator extends JFrame{
 						repaint();
 					}
 				});
+				this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 			}
 
 			@Override
@@ -137,6 +132,8 @@ public class HitboxCreator extends JFrame{
 				Graphics2D g = (Graphics2D) g1;
 				
 				g.drawImage(image, 0, 0, null);
+				g.setColor(Color.black);
+				g.drawRect(0,0,image.getWidth(), image.getHeight());
 				
 				g.setColor(Color.red);
 				
@@ -151,20 +148,31 @@ public class HitboxCreator extends JFrame{
 		this.getContentPane().add(new Pane());
 		this.getContentPane().add(data, BorderLayout.SOUTH);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
-	
-	Data data = new Data();
 	
 	protected void updateData() {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				data.ab.xxx.setText(Arrays.toString(poly.xpoints));
-				data.ab.yyy.setText(Arrays.toString(poly.ypoints));
-				data.ab.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
-//				System.out.println(poly);
+				
+				if (tab.equals(abs)){
+					data.absolute.xxx.setText(Arrays.toString(poly.xpoints));
+					data.absolute.yyy.setText(Arrays.toString(poly.ypoints));
+					data.absolute.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
+				}
+				else if (tab.equals(rel)){
+					double relx[] = getRelativeX(poly.xpoints);
+					double rely[] = getRelativeY(poly.ypoints);
+					data.relative.xxx.setText(Arrays.toString(relx));
+					data.relative.yyy.setText(Arrays.toString(rely));
+					data.relative.ppp.setText(Arrays.deepToString(toPoints(relx, rely)));
+				}
+				else{
+					System.out.println("else");
+				}
 			}
 			
 			private int[][] toPoints(int[] xPoints, int[] yPoints){
@@ -175,6 +183,15 @@ public class HitboxCreator extends JFrame{
 					
 				return points;
 			}
+			
+			private double[][] toPoints(double[] xPoints, double[] yPoints){
+				double points[][] = new double[xPoints.length][];
+				
+				for (int i=0; i < xPoints.length; i++)
+					points[i] = new double[] {xPoints[i], yPoints[i]};
+					
+				return points;
+			}
 		});
 	}
 
@@ -182,25 +199,32 @@ public class HitboxCreator extends JFrame{
 		new HitboxCreator();
 	}
 	
-	
 	class Data extends JTabbedPane{
 		
-		public Absolute ab = new Absolute();
+		private AbsoluteAndRelative absolute = new AbsoluteAndRelative();
+		private AbsoluteAndRelative relative = new AbsoluteAndRelative();
+		private Generate generate = new Generate();
 		
 		public Data() {
 			
-			add("Absolute", ab);
-			add("Relative/Ratio", new Relative());
-			add("Generate Java HitBox Method", new Generate());
+			add(abs, absolute);
+			add(rel, relative);
+			add(gen, generate);
+			
+			addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					tab = ((JTabbedPane) changeEvent.getSource()).getTitleAt(((JTabbedPane) changeEvent.getSource()).getSelectedIndex());
+					updateData();
+				}
+			});
 		}
 		
-		class Absolute extends JPanel{
+		class AbsoluteAndRelative extends JPanel{
 			
-			public JTextField xxx;
-			private JTextField yyy;
-			private JTextField ppp;
+			private JTextField xxx, yyy, ppp;
 
-			public Absolute() {
+			public AbsoluteAndRelative() {
 				
 				//X
 				JPanel x = new JPanel();
@@ -240,23 +264,32 @@ public class HitboxCreator extends JFrame{
 				add(p);
 				
 			}
-			
-//			private String toPoint(){
-//				String output = "";
-//				for (int i =0; i < xpoints.length; i++)
-//					output += "(" + xpoints[i] + "," + ypoints[i] + "), ";
-//			}
-			
-		}
-		
-		class Relative extends JPanel{
-			
 		}
 		
 		class Generate extends JPanel{
 			
 		}
 		
+	}
+	
+	private double[] getRelativeX(int[] xpoints) {
+		
+		double rel[] = new double[xpoints.length];
+		
+		for (int i =0; i < xpoints.length; i++)
+			rel[i] = xpoints[i] / (double) image.getWidth();
+		
+		return rel;
+	}
+	
+	private double[] getRelativeY(int[] ypoints) {
+
+		double rel[] = new double[ypoints.length];
+		
+		for (int i =0; i < ypoints.length; i++)
+			rel[i] = ypoints[i] / (double) image.getHeight();
+		
+		return rel;
 	}
 
 }
