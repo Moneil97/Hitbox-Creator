@@ -4,16 +4,13 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -29,8 +26,7 @@ public class HitboxCreator extends JFrame{
 
 	private File file;
 	private BufferedImage image;
-	//private List<Point> points;
-	public Polygon poly = new Polygon(){
+	public Polygon poly = new Polygon(new int[]{}, new int[]{}, 0){
 		
 		@Override
 		public String toString() {
@@ -64,6 +60,39 @@ public class HitboxCreator extends JFrame{
 			
 			return rel;
 		}
+		
+		public void addPoint(int x, int y) {
+			if (npoints + 1 > xpoints.length) {
+				int[] newx = new int[npoints + 1];
+				System.arraycopy(xpoints, 0, newx, 0, npoints);
+				xpoints = newx;
+			}
+			if (npoints + 1 > ypoints.length) {
+				int[] newy = new int[npoints + 1];
+				System.arraycopy(ypoints, 0, newy, 0, npoints);
+				ypoints = newy;
+			}
+			xpoints[npoints] = x;
+			ypoints[npoints] = y;
+			npoints++;
+			if (bounds != null) {
+				if (npoints == 1) {
+					bounds.x = x;
+					bounds.y = y;
+				} else {
+					if (x < bounds.x) {
+						bounds.width += bounds.x - x;
+						bounds.x = x;
+					} else if (x > bounds.x + bounds.width)
+						bounds.width = x - bounds.x;
+					if (y < bounds.y) {
+						bounds.height += bounds.y - y;
+						bounds.y = y;
+					} else if (y > bounds.y + bounds.height)
+						bounds.height = y - bounds.y;
+				}
+			}
+		}
 	};
 
 	public HitboxCreator() {
@@ -71,14 +100,16 @@ public class HitboxCreator extends JFrame{
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
 		
-		JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
-			file = chooser.getSelectedFile();
-		}
-		else{
-			System.exit(0);
-		}
+//		JFileChooser chooser = new JFileChooser();
+//		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+//		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
+//			file = chooser.getSelectedFile();
+//		}
+//		else{
+//			System.exit(0);
+//		}
+		
+		file = new File("src/testImage.png");
 		
 		try {
 			image = ImageIO.read(file);
@@ -87,15 +118,12 @@ public class HitboxCreator extends JFrame{
 			System.exit(0);
 		}
 		
-		//points = new ArrayList<Point>();
-		
 		class Pane extends JPanel{
 			
 			public Pane(){
 				addMouseListener(new MouseAdapter() {
 					@Override
 					public void mousePressed(MouseEvent e) {
-						//points.add(e.getPoint());
 						poly.addPoint(e.getX(), e.getY());
 						updateData();
 						repaint();
@@ -115,12 +143,10 @@ public class HitboxCreator extends JFrame{
 				for (int i =0; i <poly.npoints; i++)
 					g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
 
-				//System.out.println(poly);
+				
 				g.fill(poly);
 			}
 		}
-		
-		
 		
 		this.getContentPane().add(new Pane());
 		this.getContentPane().add(data, BorderLayout.SOUTH);
@@ -137,6 +163,17 @@ public class HitboxCreator extends JFrame{
 			public void run() {
 				data.ab.xxx.setText(Arrays.toString(poly.xpoints));
 				data.ab.yyy.setText(Arrays.toString(poly.ypoints));
+				data.ab.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
+//				System.out.println(poly);
+			}
+			
+			private int[][] toPoints(int[] xPoints, int[] yPoints){
+				int points[][] = new int[xPoints.length][];
+				
+				for (int i=0; i < xPoints.length; i++)
+					points[i] = new int[] {xPoints[i], yPoints[i]};
+					
+				return points;
 			}
 		});
 	}
@@ -145,11 +182,6 @@ public class HitboxCreator extends JFrame{
 		new HitboxCreator();
 	}
 	
-//	class Polygon2 extends Polygon{
-//		
-//		
-//		
-//	}
 	
 	class Data extends JTabbedPane{
 		
