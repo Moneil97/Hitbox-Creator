@@ -76,13 +76,35 @@ public class HitboxCreator extends JFrame{
 					
 					@Override
 					public String toString() {
-						String output = "\nX: " + Arrays.toString(xpoints);
-						output += "\nY: " + Arrays.toString(ypoints) + "\nPoints: ";
+						String output = "\nAbsolute X: " + Arrays.toString(xpoints);
+						output += "\nAbsolute Y: " + Arrays.toString(ypoints);
+						output += "\nRelative X: " + Arrays.toString(getRelativeX(xpoints));
+						output += "\nRelative Y: " + Arrays.toString(getRelativeY(ypoints)) + "\nPoints: ";
 						
 						for (int i =0; i < xpoints.length; i++)
 							output += "(" + xpoints[i] + "," + ypoints[i] + "), ";
 						
 						return output;
+					}
+
+					private double[] getRelativeX(int[] xpoints) {
+						
+						double rel[] = new double[xpoints.length];
+						
+						for (int i =0; i < xpoints.length; i++)
+							rel[i] = xpoints[i] / (double) image.getWidth();
+						
+						return rel;
+					}
+					
+					private double[] getRelativeY(int[] ypoints) {
+
+						double rel[] = new double[ypoints.length];
+						
+						for (int i =0; i < ypoints.length; i++)
+							rel[i] = ypoints[i] / (double) image.getHeight();
+						
+						return rel;
 					}
 					
 				};
