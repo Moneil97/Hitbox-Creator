@@ -7,6 +7,9 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -51,6 +54,7 @@ public class HitboxCreator extends JFrame{
 	private String extensions[] = {".jpg", ".png", ".gif", ".jpeg", ".bmp", ".wbmp"};
 	private int pointHeld = -1;
 	private Pane pane;
+	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
 	public HitboxCreator() {
 		
@@ -302,6 +306,13 @@ public class HitboxCreator extends JFrame{
 				JLabel xx = new JLabel("X: ");
 				xxx = new JTextField("[]");
 				JButton xCopy = new JButton("Copy");
+				xCopy.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						StringSelection selection = new StringSelection(xxx.getText());
+						clipboard.setContents(selection, selection);
+					}
+				});
 				x.setLayout(new BorderLayout());
 				x.add(xx, BorderLayout.WEST);
 				x.add(xxx);
@@ -312,6 +323,13 @@ public class HitboxCreator extends JFrame{
 				JLabel yy = new JLabel("Y: ");
 				yyy = new JTextField("[]");
 				JButton yCopy = new JButton("Copy");
+				yCopy.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						StringSelection selection = new StringSelection(yyy.getText());
+						clipboard.setContents(selection, selection);
+					}
+				});
 				y.setLayout(new BorderLayout());
 				y.add(yy, BorderLayout.WEST);
 				y.add(yyy);
@@ -322,6 +340,13 @@ public class HitboxCreator extends JFrame{
 				JLabel pp = new JLabel("Points: ");
 				ppp = new JTextField("[]");
 				JButton pCopy = new JButton("Copy");
+				pCopy.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						StringSelection selection = new StringSelection(ppp.getText());
+						clipboard.setContents(selection, selection);
+					}
+				});
 				p.setLayout(new BorderLayout());
 				p.add(pp, BorderLayout.WEST);
 				p.add(ppp);
@@ -333,7 +358,6 @@ public class HitboxCreator extends JFrame{
 				add(x);
 				add(y);
 				add(p);
-				
 			}
 		}
 		
