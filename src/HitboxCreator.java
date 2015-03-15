@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -36,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -43,8 +45,8 @@ import javax.swing.filechooser.FileFilter;
 @SuppressWarnings("serial")
 public class HitboxCreator extends JFrame{
 
-	private File file;
 	private BufferedImage image;
+	private String help = "Help";
 	private String abs = "Absolute";
 	private String rel = "Relative/Ratio";
 	private String gen = "Generate Java HitBox Class";
@@ -54,15 +56,15 @@ public class HitboxCreator extends JFrame{
 	private String extensions[] = {".jpg", ".png", ".gif", ".jpeg", ".bmp", ".wbmp"};
 	private int pointHeld = -1;
 	private Pane pane;
-	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
+	private Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	
 	public HitboxCreator() {
 		
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
 		
 		try{
-			image = ImageIO.read(getClass().getResourceAsStream("testImage.png"));
+			getImageFromURL(new URL("http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi"));
 		} catch (IOException e) {
 			try {
 				getImageFromFile();
@@ -98,7 +100,7 @@ public class HitboxCreator extends JFrame{
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							try {
-								image = ImageIO.read(new URL(JOptionPane.showInputDialog("InsertLink:", "http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi")));
+								getImageFromURL();
 								reset();
 								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 								HitboxCreator.this.pack();
@@ -208,6 +210,7 @@ public class HitboxCreator extends JFrame{
 	
 	private void getImageFromFile() throws IOException{
 		JFileChooser chooser = new JFileChooser();
+		//chooser.setName("Choose an Image");
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		chooser.setFileFilter(new FileFilter() {
 			
@@ -226,10 +229,20 @@ public class HitboxCreator extends JFrame{
 			}
 		});
 		
+		File file = null;
+		
 		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
 			file = chooser.getSelectedFile();
 		}
-		image = ImageIO.read(file);
+		if (file != null) image = ImageIO.read(file);
+	}
+	
+	private void getImageFromURL(URL url) throws IOException{
+		image = ImageIO.read(url);
+	}
+	
+	private void getImageFromURL() throws IOException{
+		getImageFromURL(new URL(JOptionPane.showInputDialog("InsertLink:", "http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi")));
 	}
 	
 	private void updateData() {
@@ -282,9 +295,9 @@ public class HitboxCreator extends JFrame{
 			add(abs, absolute);
 			add(rel, relative);
 			add(gen, generate);
-			add("Help", null);
+			add(help , new Help());
 			
-			setPreferredSize(new Dimension(0, 130));
+			setPreferredSize(new Dimension(0, 145));
 			
 			addChangeListener(new ChangeListener() {
 				@Override
@@ -293,6 +306,38 @@ public class HitboxCreator extends JFrame{
 					updateData();
 				}
 			});
+		}
+		
+		class Help extends JPanel{
+			
+			public Help(){
+				setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+				
+				JLabel lblRightMouse = new JLabel("Right Mouse: Add Hitbox Point (Min of 3)");
+				lblRightMouse.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(lblRightMouse);
+				
+				JLabel lblLeftMouse = new JLabel("Left Mouse: Move Selected Hitbox Point");
+				lblLeftMouse.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(lblLeftMouse);
+				
+				JLabel lblAbsolute = new JLabel("Absolute Positioning: Faster, Only use if object stays the same width and height");
+				lblAbsolute.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(lblAbsolute);
+				
+				JLabel lblRelative = new JLabel("Relative Positioning: Slower, will adjust with the object's width and height");
+				lblRelative.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(lblRelative);
+				
+				JLabel note = new JLabel("Note: Do NOT crop the image later. However, If you are using relative you may stretch or shrink it");
+				note.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(note);
+				
+				JLabel note2 = new JLabel("Note: With Relative you do not have to maintain aspect ratio");
+				note2.setBorder(new EmptyBorder(5, 8, 0, 0));
+				add(note2);
+			}
+			
 		}
 		
 		class AbsoluteAndRelative extends JPanel{
@@ -364,6 +409,11 @@ public class HitboxCreator extends JFrame{
 		class Generate extends JPanel{
 			
 			public Generate() {
+				
+				this.setLayout(new BorderLayout());
+				
+				JPanel bottom = new JPanel();
+				
 				JButton absolute = new JButton("Generate Java Class for Absolute Positioning");
 				absolute.addActionListener(new ActionListener() {
 					@Override
@@ -483,8 +533,9 @@ public class HitboxCreator extends JFrame{
 					}
 				});
 				
-				add(absolute);
-				add(relative);
+				bottom.add(absolute);
+				bottom.add(relative);
+				this.add(bottom, BorderLayout.SOUTH);
 			}
 			
 		}
