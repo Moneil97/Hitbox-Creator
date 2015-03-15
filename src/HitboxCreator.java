@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -27,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -59,7 +61,7 @@ public class HitboxCreator extends JFrame{
 			image = ImageIO.read(getClass().getResourceAsStream("testImage.png"));
 		} catch (IOException e) {
 			try {
-				getImage();
+				getImageFromFile();
 			} catch (IOException e1) {
 				System.exit(0);
 				e1.printStackTrace();
@@ -75,9 +77,11 @@ public class HitboxCreator extends JFrame{
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							try {
-								getImage();
+								getImageFromFile();
+								reset();
 								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 								HitboxCreator.this.pack();
+								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
 							} catch (IOException e1) {
 								e1.printStackTrace();
@@ -86,6 +90,21 @@ public class HitboxCreator extends JFrame{
 					});
 					open.add(file);
 					JMenuItem link = new JMenuItem("Link");
+					link.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							try {
+								image = ImageIO.read(new URL(JOptionPane.showInputDialog("InsertLink:", "http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi")));
+								reset();
+								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+								HitboxCreator.this.pack();
+								HitboxCreator.this.setLocationRelativeTo(null);
+								repaint();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						}
+					});
 					open.add(link);
 				this.add(open);
 				JMenu tools = new JMenu("Tools");
@@ -93,16 +112,13 @@ public class HitboxCreator extends JFrame{
 					reset.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							poly = new Polygon2(new int[]{}, new int[]{}, 0);
-							updateData();
-							HitboxCreator.this.repaint();
+							reset();
 						}
 					});
 					tools.add(reset);
 				this.add(tools);
 			}
 		}
-		
 		
 		setJMenuBar(new MyMenuBar());
 		
@@ -115,6 +131,12 @@ public class HitboxCreator extends JFrame{
 		this.setVisible(true);
 	}
 	
+	private void reset(){
+		poly = new Polygon2(new int[]{}, new int[]{}, 0);
+		updateData();
+		repaint();
+	}
+	
 	class Pane extends JPanel{
 		
 		public Pane(){
@@ -122,14 +144,9 @@ public class HitboxCreator extends JFrame{
 				@Override
 				public void mousePressed(MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON1){
-						
-						for (int i =0; i <poly.npoints; i++){
-							if (new Rectangle(poly.xpoints[i]-5, poly.ypoints[i]-5, 10,10).contains(e.getPoint())){
-								say(i);
+						for (int i =0; i <poly.npoints; i++)
+							if (new Rectangle(poly.xpoints[i]-5, poly.ypoints[i]-5, 10,10).contains(e.getPoint()))
 								pointHeld = i;
-							}
-						}
-						
 					}
 					else if (e.getButton() == MouseEvent.BUTTON3){
 						poly.addPoint(e.getX(), e.getY());
@@ -148,7 +165,6 @@ public class HitboxCreator extends JFrame{
 				@Override
 				public void mouseDragged(MouseEvent e) {
 					if (pointHeld >= 0){
-						say("drag " + pointHeld);
 						
 						int[] xs = poly.xpoints;
 						int[] ys = poly.ypoints;
@@ -177,14 +193,16 @@ public class HitboxCreator extends JFrame{
 			
 			g.setColor(Color.red);
 			
+			
 			for (int i =0; i <poly.npoints; i++)
 				g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
 			
+			g.setColor(new Color(1,0,0,.5f));
 			g.fill(poly);
 		}
 	}
 	
-	private void getImage() throws IOException{
+	private void getImageFromFile() throws IOException{
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		chooser.setFileFilter(new FileFilter() {
@@ -349,7 +367,7 @@ public class HitboxCreator extends JFrame{
 								
 							}
 							
-							System.out.println(output);
+							//System.out.println(output);
 							
 							File f = new File("AbsoluteClassTemplate.java");
 							
@@ -407,7 +425,7 @@ public class HitboxCreator extends JFrame{
 								
 							}
 							
-							System.out.println(output);
+							//System.out.println(output);
 							
 							byte[] text = output.getBytes();
 							File f = new File("RelativeClassTemplate.java");
