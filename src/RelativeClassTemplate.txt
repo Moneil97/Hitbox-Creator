@@ -4,7 +4,7 @@ import java.awt.Polygon;
 import java.util.Arrays;
 
 
-public class RelativeExample {
+public class RelativeClassTemplate {
 
 	private int x,y,width,height;
 	private Polygon poly = new Polygon();
@@ -15,11 +15,11 @@ public class RelativeExample {
 	int size;
 	public int xSpeed, ySpeed;
 	
-	public RelativeExample(int x, int y, int width, int height) {
+	public RelativeClassTemplate(int x, int y, int width, int height) {
 		this(x,y,width,height, 0,0);
 	}
 	
-	public RelativeExample(int x, int y, int width, int height, int xSpeed, int ySpeed) {
+	public RelativeClassTemplate(int x, int y, int width, int height, int xSpeed, int ySpeed) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
