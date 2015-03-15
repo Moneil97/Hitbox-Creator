@@ -6,6 +6,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -34,56 +37,7 @@ public class HitboxCreator extends JFrame{
 	private String gen = "Generate Java HitBox Method";
 	private String tab = abs;
 	private Data data = new Data();
-	private Polygon poly = new Polygon(new int[]{}, new int[]{}, 0){
-		
-		@Override
-		public String toString() {
-			String output = "\nAbsolute X: " + Arrays.toString(xpoints);
-			output += "\nAbsolute Y: " + Arrays.toString(ypoints);
-			output += "\nRelative X: " + Arrays.toString(getRelativeX(xpoints));
-			output += "\nRelative Y: " + Arrays.toString(getRelativeY(ypoints)) + "\nPoints: ";
-			
-			for (int i =0; i < xpoints.length; i++)
-				output += "(" + xpoints[i] + "," + ypoints[i] + "), ";
-			
-			return output;
-		}
-		
-		
-		
-		public void addPoint(int x, int y) {
-			if (npoints + 1 > xpoints.length) {
-				int[] newx = new int[npoints + 1];
-				System.arraycopy(xpoints, 0, newx, 0, npoints);
-				xpoints = newx;
-			}
-			if (npoints + 1 > ypoints.length) {
-				int[] newy = new int[npoints + 1];
-				System.arraycopy(ypoints, 0, newy, 0, npoints);
-				ypoints = newy;
-			}
-			xpoints[npoints] = x;
-			ypoints[npoints] = y;
-			npoints++;
-			if (bounds != null) {
-				if (npoints == 1) {
-					bounds.x = x;
-					bounds.y = y;
-				} else {
-					if (x < bounds.x) {
-						bounds.width += bounds.x - x;
-						bounds.x = x;
-					} else if (x > bounds.x + bounds.width)
-						bounds.width = x - bounds.x;
-					if (y < bounds.y) {
-						bounds.height += bounds.y - y;
-						bounds.y = y;
-					} else if (y > bounds.y + bounds.height)
-						bounds.height = y - bounds.y;
-				}
-			}
-		}
-	};
+	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
 
 	public HitboxCreator() {
 		
@@ -118,11 +72,48 @@ public class HitboxCreator extends JFrame{
 				addMouseListener(new MouseAdapter() {
 					@Override
 					public void mousePressed(MouseEvent e) {
-						poly.addPoint(e.getX(), e.getY());
-						updateData();
-						repaint();
+						if (e.getButton() == MouseEvent.BUTTON1){
+							
+							for (int i =0; i <poly.npoints; i++){
+								if (new Rectangle(poly.xpoints[i]-5, poly.ypoints[i]-5, 10,10).contains(e.getPoint())){
+									say(i);
+									pointHeld = i;
+								}
+							}
+							
+						}
+						else if (e.getButton() == MouseEvent.BUTTON3){
+							poly.addPoint(e.getX(), e.getY());
+							updateData();
+							repaint();
+						}
+					}
+					
+					@Override
+					public void mouseReleased(MouseEvent e) {
+						pointHeld = -1;
 					}
 				});
+				
+				addMouseMotionListener(new MouseAdapter(){
+					@Override
+					public void mouseDragged(MouseEvent e) {
+						if (pointHeld >= 0){
+							say("drag " + pointHeld);
+							
+							int[] xs = poly.xpoints;
+							int[] ys = poly.ypoints;
+							
+							xs[pointHeld] = e.getX();
+							ys[pointHeld] = e.getY();
+							
+							poly = new Polygon2(xs, ys, xs.length);
+							updateData();
+							repaint();
+						}
+					}
+				});
+				
 				this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 			}
 
@@ -153,26 +144,34 @@ public class HitboxCreator extends JFrame{
 		this.setVisible(true);
 	}
 	
+	int pointHeld = -1;
+	
 	protected void updateData() {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				
 				if (tab.equals(abs)){
 					data.absolute.xxx.setText(Arrays.toString(poly.xpoints));
 					data.absolute.yyy.setText(Arrays.toString(poly.ypoints));
 					data.absolute.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
 				}
 				else if (tab.equals(rel)){
-					double relx[] = getRelativeX(poly.xpoints);
-					double rely[] = getRelativeY(poly.ypoints);
-					data.relative.xxx.setText(Arrays.toString(relx));
-					data.relative.yyy.setText(Arrays.toString(rely));
+					float relx[] = getRelativeX(poly.xpoints);
+					float rely[] = getRelativeY(poly.ypoints);
+					data.relative.xxx.setText(toFloatArrayString(relx));
+					data.relative.yyy.setText(toFloatArrayString(rely));
 					data.relative.ppp.setText(Arrays.deepToString(toPoints(relx, rely)));
 				}
-				else{
-					System.out.println("else");
+			}
+			
+			private String toFloatArrayString(float[] array){
+				String output = "{ ";
+				
+				for (float f: array){
+					output += f + "f, ";
 				}
+				
+				return output.substring(0, output.length()-2) + "}";
 			}
 			
 			private int[][] toPoints(int[] xPoints, int[] yPoints){
@@ -184,11 +183,11 @@ public class HitboxCreator extends JFrame{
 				return points;
 			}
 			
-			private double[][] toPoints(double[] xPoints, double[] yPoints){
-				double points[][] = new double[xPoints.length][];
+			private float[][] toPoints(float[] xPoints, float[] yPoints){
+				float points[][] = new float[xPoints.length][];
 				
 				for (int i=0; i < xPoints.length; i++)
-					points[i] = new double[] {xPoints[i], yPoints[i]};
+					points[i] = new float[] {xPoints[i], yPoints[i]};
 					
 				return points;
 			}
@@ -210,6 +209,9 @@ public class HitboxCreator extends JFrame{
 			add(abs, absolute);
 			add(rel, relative);
 			add(gen, generate);
+			add("Help", null);
+			
+			setPreferredSize(new Dimension(0, 130));
 			
 			addChangeListener(new ChangeListener() {
 				@Override
@@ -268,28 +270,106 @@ public class HitboxCreator extends JFrame{
 		
 		class Generate extends JPanel{
 			
+			public Generate() {
+				JButton absolute = new JButton("Generate Java Class for Absolute Positioning");
+				absolute.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						
+					}
+				});
+				JButton relative = new JButton("Generate Java Class for Relative Positioning");
+				relative.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						
+					}
+				});
+				
+				add(absolute);
+				add(relative);
+				
+			}
+			
 		}
 		
 	}
 	
-	private double[] getRelativeX(int[] xpoints) {
+	private float[] getRelativeX(int[] xpoints) {
 		
-		double rel[] = new double[xpoints.length];
+		float rel[] = new float[xpoints.length];
 		
 		for (int i =0; i < xpoints.length; i++)
-			rel[i] = xpoints[i] / (double) image.getWidth();
+			rel[i] = xpoints[i] / (float) image.getWidth();
 		
 		return rel;
 	}
 	
-	private double[] getRelativeY(int[] ypoints) {
+	private float[] getRelativeY(int[] ypoints) {
 
-		double rel[] = new double[ypoints.length];
+		float rel[] = new float[ypoints.length];
 		
 		for (int i =0; i < ypoints.length; i++)
-			rel[i] = ypoints[i] / (double) image.getHeight();
+			rel[i] = ypoints[i] / (float) image.getHeight();
 		
 		return rel;
 	}
+	
+	class Polygon2 extends Polygon{
+		
+		public Polygon2(int[] xs, int[] ys, int size) {
+			super(xs, ys, size);
+		}
 
+		@Override
+		public String toString() {
+			String output = "\nAbsolute X: " + Arrays.toString(xpoints);
+			output += "\nAbsolute Y: " + Arrays.toString(ypoints);
+			output += "\nRelative X: " + Arrays.toString(getRelativeX(xpoints));
+			output += "\nRelative Y: " + Arrays.toString(getRelativeY(ypoints)) + "\nPoints: ";
+			
+			for (int i =0; i < xpoints.length; i++)
+				output += "(" + xpoints[i] + "," + ypoints[i] + "), ";
+			
+			return output;
+		}
+		
+		public void addPoint(int x, int y) {
+			if (npoints + 1 > xpoints.length) {
+				int[] newx = new int[npoints + 1];
+				System.arraycopy(xpoints, 0, newx, 0, npoints);
+				xpoints = newx;
+			}
+			if (npoints + 1 > ypoints.length) {
+				int[] newy = new int[npoints + 1];
+				System.arraycopy(ypoints, 0, newy, 0, npoints);
+				ypoints = newy;
+			}
+			xpoints[npoints] = x;
+			ypoints[npoints] = y;
+			npoints++;
+			if (bounds != null) {
+				if (npoints == 1) {
+					bounds.x = x;
+					bounds.y = y;
+				} else {
+					if (x < bounds.x) {
+						bounds.width += bounds.x - x;
+						bounds.x = x;
+					} else if (x > bounds.x + bounds.width)
+						bounds.width = x - bounds.x;
+					if (y < bounds.y) {
+						bounds.height += bounds.y - y;
+						bounds.y = y;
+					} else if (y > bounds.y + bounds.height)
+						bounds.height = y - bounds.y;
+				}
+			}
+		}
+		
+	}
+
+	public void say(Object o){
+		System.out.println(o);
+	}
 }
