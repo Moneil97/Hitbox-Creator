@@ -273,13 +273,13 @@ public class HitboxCreator extends JFrame{
 								
 								String next = scan.nextLine();
 								
-								if (next.contains("<Insert xCoords Here>")){
+								if (next.contains("/*<Insert xCoords Here>*/")){
 									String xs = Arrays.toString(poly.xpoints);
-									next = next.replace("<Insert yCoords Here>", xs.substring(1, xs.length()-1));
+									next = next.replace("/*<Insert xCoords Here>*/", xs.substring(1, xs.length()-1));
 								}
-								else if (next.contains("<Insert xCoords Here>")){
+								else if (next.contains("/*<Insert yCoords Here>*/")){
 									String ys = Arrays.toString(poly.ypoints);
-									next = next.replace("<Insert yCoords Here>", ys.substring(0, ys.length()-1));
+									next = next.replace("/*<Insert yCoords Here>*/", ys.substring(1, ys.length()-1));
 								}
 								else{
 									
