@@ -415,7 +415,7 @@ public class HitboxCreator extends JFrame{
 									next = next.replace("{<Insert xRatios Here>}", toFloatArrayString(getRelativeX(poly.xpoints)));
 								}
 								else if (next.contains("{<Insert yRatios Here>}")){
-									next = next.replace("{<Insert yRatios Here>}", toFloatArrayString(getRelativeX(poly.ypoints)));
+									next = next.replace("{<Insert yRatios Here>}", toFloatArrayString(getRelativeY(poly.ypoints)));
 								}
 								else{
 									
