@@ -24,11 +24,17 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 @SuppressWarnings("serial")
 public class HitboxCreator extends JFrame{
@@ -68,6 +74,40 @@ public class HitboxCreator extends JFrame{
 				System.exit(0);
 			}
 		}
+		
+		class MyMenuBar extends JMenuBar{
+			
+			public MyMenuBar() {
+				JMenu open = new JMenu("Open");
+					JMenuItem file = new JMenuItem("File");
+					file.addActionListener(new ActionListener() {
+						
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							say("File");
+						}
+					});
+					open.add(file);
+					JMenuItem link = new JMenuItem("Link");
+					open.add(link);
+				this.add(open);
+				JMenu tools = new JMenu("Tools");
+					JMenuItem reset = new JMenuItem("Reset");
+					reset.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							poly = new Polygon2(new int[]{}, new int[]{}, 0);
+							updateData();
+							HitboxCreator.this.repaint();
+						}
+					});
+					tools.add(reset);
+				this.add(tools);
+			}
+		}
+		
+		
+		setJMenuBar(new MyMenuBar());
 		
 		class Pane extends JPanel{
 			
@@ -183,10 +223,6 @@ public class HitboxCreator extends JFrame{
 				return points;
 			}
 		});
-	}
-
-	public static void main(String[] args) {
-		new HitboxCreator();
 	}
 	
 	class Data extends JTabbedPane{
@@ -478,5 +514,14 @@ public class HitboxCreator extends JFrame{
 
 	public void say(Object o){
 		System.out.println(o);
+	}
+	
+	public static void main(String[] args) {
+		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}catch(Exception e){};
+		
+		new HitboxCreator();
 	}
 }
