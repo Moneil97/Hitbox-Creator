@@ -13,8 +13,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -34,10 +37,12 @@ public class HitboxCreator extends JFrame{
 	private BufferedImage image;
 	private String abs = "Absolute";
 	private String rel = "Relative/Ratio";
-	private String gen = "Generate Java HitBox Method";
+	private String gen = "Generate Java HitBox Class";
 	private String tab = abs;
 	private Data data = new Data();
 	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
+
+	private int pointHeld = -1;
 
 	public HitboxCreator() {
 		
@@ -45,8 +50,7 @@ public class HitboxCreator extends JFrame{
 		this.setSize(900, 700);
 		
 		try{
-			file = new File("src/testImage.png");
-			image = ImageIO.read(file);
+			image = ImageIO.read(getClass().getResourceAsStream("testImage.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			JFileChooser chooser = new JFileChooser();
@@ -57,7 +61,6 @@ public class HitboxCreator extends JFrame{
 			else{
 				System.exit(0);
 			}
-			
 			try {
 				image = ImageIO.read(file);
 			} catch (IOException e1) {
@@ -130,7 +133,6 @@ public class HitboxCreator extends JFrame{
 				
 				for (int i =0; i <poly.npoints; i++)
 					g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
-
 				
 				g.fill(poly);
 			}
@@ -144,8 +146,6 @@ public class HitboxCreator extends JFrame{
 		this.setVisible(true);
 	}
 	
-	int pointHeld = -1;
-	
 	protected void updateData() {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
@@ -155,6 +155,7 @@ public class HitboxCreator extends JFrame{
 					data.absolute.yyy.setText(Arrays.toString(poly.ypoints));
 					data.absolute.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
 				}
+				
 				else if (tab.equals(rel)){
 					float relx[] = getRelativeX(poly.xpoints);
 					float rely[] = getRelativeY(poly.ypoints);
@@ -164,15 +165,7 @@ public class HitboxCreator extends JFrame{
 				}
 			}
 			
-			private String toFloatArrayString(float[] array){
-				String output = "{ ";
-				
-				for (float f: array){
-					output += f + "f, ";
-				}
-				
-				return output.substring(0, output.length()-2) + "}";
-			}
+			
 			
 			private int[][] toPoints(int[] xPoints, int[] yPoints){
 				int points[][] = new int[xPoints.length][];
@@ -282,13 +275,64 @@ public class HitboxCreator extends JFrame{
 				relative.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						
+						try {
+							
+							Scanner scan = new Scanner(getClass().getResourceAsStream("RelativeClassTemplate.txt"));
+							String output = "";
+							while (scan.hasNextLine()){
+								
+								String next = scan.nextLine();
+								
+								if (next.contains("{<Insert xRatios Here>}")){
+									next = next.replace("{<Insert xRatios Here>}", toFloatArrayString(getRelativeX(poly.xpoints)));
+								}
+								else if (next.contains("{<Insert yRatios Here>}")){
+									next = next.replace("{<Insert yRatios Here>}", toFloatArrayString(getRelativeX(poly.ypoints)));
+								}
+								else{
+									
+								}
+								
+								output += next + System.getProperty("line.separator");
+								
+							}
+							
+							System.out.println(output);
+							
+							byte[] text = output.getBytes();
+							File f = new File("output.txt");
+							
+							try {
+								f.createNewFile();
+							} catch (IOException e2) {
+								e2.printStackTrace();
+							}
+							
+							FileOutputStream out = new FileOutputStream(f);
+							try {
+								out.write(text);
+								out.close();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+							
+							ProcessBuilder pb = new ProcessBuilder("Notepad.exe", f.getPath());
+							try {
+								pb.start();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+							
+							scan.close();
+							
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
 					}
 				});
 				
 				add(absolute);
 				add(relative);
-				
 			}
 			
 		}
@@ -313,6 +357,19 @@ public class HitboxCreator extends JFrame{
 			rel[i] = ypoints[i] / (float) image.getHeight();
 		
 		return rel;
+	}
+	
+	private String toFloatArrayString(float[] array){
+		
+		if (array.length == 0) return "{}";
+		
+		String output = "{ ";
+		
+		for (float f: array){
+			output += f + "f, ";
+		}
+		
+		return output.substring(0, output.length()-2) + "}";
 	}
 	
 	class Polygon2 extends Polygon{
