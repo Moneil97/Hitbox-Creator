@@ -165,8 +165,6 @@ public class HitboxCreator extends JFrame{
 				}
 			}
 			
-			
-			
 			private int[][] toPoints(int[] xPoints, int[] yPoints){
 				int points[][] = new int[xPoints.length][];
 				
@@ -268,7 +266,59 @@ public class HitboxCreator extends JFrame{
 				absolute.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						
+						try {
+							Scanner scan = new Scanner(getClass().getResourceAsStream("AbsoluteClassTemplate.txt"));
+							String output = "";
+							while (scan.hasNextLine()){
+								
+								String next = scan.nextLine();
+								
+								if (next.contains("<Insert xCoords Here>")){
+									String xs = Arrays.toString(poly.xpoints);
+									next = next.replace("<Insert yCoords Here>", xs.substring(1, xs.length()-1));
+								}
+								else if (next.contains("<Insert xCoords Here>")){
+									String ys = Arrays.toString(poly.ypoints);
+									next = next.replace("<Insert yCoords Here>", ys.substring(0, ys.length()-1));
+								}
+								else{
+									
+								}
+								
+								output += next + System.getProperty("line.separator");
+								
+							}
+							
+							System.out.println(output);
+							
+							File f = new File("AbsoluteClassTemplate.java");
+							
+							try {
+								f.createNewFile();
+							} catch (IOException e2) {
+								e2.printStackTrace();
+							}
+							
+							FileOutputStream out = new FileOutputStream(f);
+							try {
+								out.write(output.getBytes());
+								out.close();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+							
+							ProcessBuilder pb = new ProcessBuilder("Notepad.exe", f.getPath());
+							try {
+								pb.start();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+							
+							scan.close();
+							
+						} catch (FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
 					}
 				});
 				JButton relative = new JButton("Generate Java Class for Relative Positioning");
@@ -300,7 +350,7 @@ public class HitboxCreator extends JFrame{
 							System.out.println(output);
 							
 							byte[] text = output.getBytes();
-							File f = new File("output.txt");
+							File f = new File("RelativeClassTemplate.java");
 							
 							try {
 								f.createNewFile();
