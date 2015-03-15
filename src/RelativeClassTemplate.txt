@@ -1,0 +1,125 @@
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.util.Arrays;
+
+
+public class RelativeExample {
+
+	private int x,y,width,height;
+	private Polygon poly = new Polygon();
+	
+	float[] xRatios = {<Insert xRatios Here>};
+	float[] yRatios = {<Insert yRatios Here>};
+
+	int size;
+	public int xSpeed, ySpeed;
+	
+	public RelativeExample(int x, int y, int width, int height) {
+		this(x,y,width,height, 0,0);
+	}
+	
+	public RelativeExample(int x, int y, int width, int height, int xSpeed, int ySpeed) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.xSpeed = xSpeed;
+		this.ySpeed = ySpeed;
+		
+		size = xRatios.length;
+		generatePoints();
+	}
+	
+	@SuppressWarnings("serial")
+	private void generatePoints() {
+		
+		int xs[] = new int[size];
+		int ys[] = new int[size];
+		
+		for (int i =0; i  < size; i++){
+			xs[i] = Math.round(x + xRatios[i] * width);
+			ys[i] = Math.round(y + yRatios[i] * height);
+		}
+		
+		poly = new Polygon(xs, ys, size){
+
+			@Override
+			public String toString() {
+				String output = "\nAbsolute X: " + Arrays.toString(xpoints);
+				output += "\nAbsolute Y: " + Arrays.toString(ypoints);
+				return output;
+			}
+			
+		};
+		
+		System.out.println(poly);
+	}
+	
+	public void setWidth(int width){
+		setDimmensions(width, height);
+	}
+	
+	public void setHeight(int height){
+		setDimmensions(width, height);
+	}
+	
+	public void setDimmensions(Dimension d){
+		setDimmensions(d.width, d.height);
+	}
+	
+	public void setDimmensions(int width, int height){
+		this.width = width;
+		this.height = height;
+		generatePoints();
+	}
+	
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public int getSize() {
+		return size;
+	}
+	
+	public Polygon getPoly(){
+		return poly;
+	}
+
+	public void setX(int x) {
+		setPoint(x,y);
+	}
+	
+	public void setY(int y) {
+		setPoint(x,y);
+	}
+	
+	public void setPoint(Point p){
+		setPoint(p.x, p.y);
+	}
+	
+	public void setPoint(int x, int y){
+		poly.translate(x - this.x, y - this.y);
+		this.x = x;
+		this.y = y;
+	}
+	
+	public void translate(int x, int y){
+		poly.translate(x, y);
+		this.x = this.x + x;
+		this.y = this.y + y;
+	}
+
+}
