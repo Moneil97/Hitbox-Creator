@@ -33,8 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
+import javax.swing.filechooser.FileFilter;
 
 @SuppressWarnings("serial")
 public class HitboxCreator extends JFrame{
@@ -47,8 +46,9 @@ public class HitboxCreator extends JFrame{
 	private String tab = abs;
 	private Data data = new Data();
 	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
-
+	private String extensions[] = {".jpg", ".png", ".gif", ".jpeg", ".bmp", ".wbmp"};
 	private int pointHeld = -1;
+	private Pane pane;
 
 	public HitboxCreator() {
 		
@@ -58,20 +58,11 @@ public class HitboxCreator extends JFrame{
 		try{
 			image = ImageIO.read(getClass().getResourceAsStream("testImage.png"));
 		} catch (IOException e) {
-			e.printStackTrace();
-			JFileChooser chooser = new JFileChooser();
-			chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-			if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
-				file = chooser.getSelectedFile();
-			}
-			else{
-				System.exit(0);
-			}
 			try {
-				image = ImageIO.read(file);
+				getImage();
 			} catch (IOException e1) {
-				e.printStackTrace();
 				System.exit(0);
+				e1.printStackTrace();
 			}
 		}
 		
@@ -81,10 +72,16 @@ public class HitboxCreator extends JFrame{
 				JMenu open = new JMenu("Open");
 					JMenuItem file = new JMenuItem("File");
 					file.addActionListener(new ActionListener() {
-						
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							say("File");
+							try {
+								getImage();
+								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+								HitboxCreator.this.pack();
+								repaint();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
 						}
 					});
 					open.add(file);
@@ -109,76 +106,8 @@ public class HitboxCreator extends JFrame{
 		
 		setJMenuBar(new MyMenuBar());
 		
-		class Pane extends JPanel{
-			
-			public Pane(){
-				addMouseListener(new MouseAdapter() {
-					@Override
-					public void mousePressed(MouseEvent e) {
-						if (e.getButton() == MouseEvent.BUTTON1){
-							
-							for (int i =0; i <poly.npoints; i++){
-								if (new Rectangle(poly.xpoints[i]-5, poly.ypoints[i]-5, 10,10).contains(e.getPoint())){
-									say(i);
-									pointHeld = i;
-								}
-							}
-							
-						}
-						else if (e.getButton() == MouseEvent.BUTTON3){
-							poly.addPoint(e.getX(), e.getY());
-							updateData();
-							repaint();
-						}
-					}
-					
-					@Override
-					public void mouseReleased(MouseEvent e) {
-						pointHeld = -1;
-					}
-				});
-				
-				addMouseMotionListener(new MouseAdapter(){
-					@Override
-					public void mouseDragged(MouseEvent e) {
-						if (pointHeld >= 0){
-							say("drag " + pointHeld);
-							
-							int[] xs = poly.xpoints;
-							int[] ys = poly.ypoints;
-							
-							xs[pointHeld] = e.getX();
-							ys[pointHeld] = e.getY();
-							
-							poly = new Polygon2(xs, ys, xs.length);
-							updateData();
-							repaint();
-						}
-					}
-				});
-				
-				this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
-			}
-
-			@Override
-			protected void paintComponent(Graphics g1) {
-				super.paintComponent(g1);
-				Graphics2D g = (Graphics2D) g1;
-				
-				g.drawImage(image, 0, 0, null);
-				g.setColor(Color.black);
-				g.drawRect(0,0,image.getWidth(), image.getHeight());
-				
-				g.setColor(Color.red);
-				
-				for (int i =0; i <poly.npoints; i++)
-					g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
-				
-				g.fill(poly);
-			}
-		}
-		
-		this.getContentPane().add(new Pane());
+		pane = new Pane();
+		this.getContentPane().add(pane);
 		this.getContentPane().add(data, BorderLayout.SOUTH);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.pack();
@@ -186,7 +115,102 @@ public class HitboxCreator extends JFrame{
 		this.setVisible(true);
 	}
 	
-	protected void updateData() {
+	class Pane extends JPanel{
+		
+		public Pane(){
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					if (e.getButton() == MouseEvent.BUTTON1){
+						
+						for (int i =0; i <poly.npoints; i++){
+							if (new Rectangle(poly.xpoints[i]-5, poly.ypoints[i]-5, 10,10).contains(e.getPoint())){
+								say(i);
+								pointHeld = i;
+							}
+						}
+						
+					}
+					else if (e.getButton() == MouseEvent.BUTTON3){
+						poly.addPoint(e.getX(), e.getY());
+						updateData();
+						repaint();
+					}
+				}
+				
+				@Override
+				public void mouseReleased(MouseEvent e) {
+					pointHeld = -1;
+				}
+			});
+			
+			addMouseMotionListener(new MouseAdapter(){
+				@Override
+				public void mouseDragged(MouseEvent e) {
+					if (pointHeld >= 0){
+						say("drag " + pointHeld);
+						
+						int[] xs = poly.xpoints;
+						int[] ys = poly.ypoints;
+						
+						xs[pointHeld] = e.getX();
+						ys[pointHeld] = e.getY();
+						
+						poly = new Polygon2(xs, ys, xs.length);
+						updateData();
+						repaint();
+					}
+				}
+			});
+			
+			this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+		}
+
+		@Override
+		protected void paintComponent(Graphics g1) {
+			super.paintComponent(g1);
+			Graphics2D g = (Graphics2D) g1;
+			
+			g.drawImage(image, 0, 0, null);
+			g.setColor(Color.black);
+			g.drawRect(0,0,image.getWidth(), image.getHeight());
+			
+			g.setColor(Color.red);
+			
+			for (int i =0; i <poly.npoints; i++)
+				g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
+			
+			g.fill(poly);
+		}
+	}
+	
+	private void getImage() throws IOException{
+		JFileChooser chooser = new JFileChooser();
+		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		chooser.setFileFilter(new FileFilter() {
+			
+			@Override
+			public String getDescription() {return null;}
+			
+			@Override
+			public boolean accept(File f) {
+				
+				if (f.isDirectory()) return true;
+				
+				for (String extension : extensions)
+					if (f.getName().toLowerCase().endsWith(extension))
+						return true;
+				return false;
+			}
+		});
+		
+		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
+			file = chooser.getSelectedFile();
+		}
+		image = ImageIO.read(file);
+	}
+	
+	private void updateData() {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
