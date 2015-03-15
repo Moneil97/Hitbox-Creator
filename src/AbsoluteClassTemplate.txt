@@ -1,0 +1,28 @@
+import java.awt.Polygon;
+import java.util.Arrays;
+
+
+public class AbsoluteClassTemplate extends Polygon{
+	
+	public static void main(String args[]){
+		
+		/*
+		 * Since we are using absolute, we can just use Polygon
+		 * If you want to be able to scale the object's size or proportions
+		 * Please use the Relative Feature
+		 * This will only work if the object does not change the width or height
+		 * but it will run faster
+		*/
+		
+		final int[] xCoords = {/*<Insert xCoords Here>*/};
+		final int[] yCoords = {/*<Insert yCoords Here>*/};
+		Polygon object = new Polygon(xCoords, yCoords, xCoords.length);
+		
+		System.out.println("X: " + Arrays.toString(object.xpoints) + "\nY: " + Arrays.toString(object.ypoints));
+		
+		object.translate(100, 0);
+		
+		System.out.println("X: " + Arrays.toString(object.xpoints) + "\nY: " + Arrays.toString(object.ypoints));
+		
+	}
+}
