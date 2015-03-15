@@ -235,6 +235,7 @@ public class HitboxCreator extends JFrame{
 			file = chooser.getSelectedFile();
 		}
 		if (file != null) image = ImageIO.read(file);
+		else throw new IOException("File null");
 	}
 	
 	private void getImageFromURL(URL url) throws IOException{
