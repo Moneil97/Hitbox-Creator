@@ -49,7 +49,7 @@ public class HitboxCreator extends JFrame{
 	private String help = "Help";
 	private String abs = "Absolute";
 	private String rel = "Relative/Ratio";
-	private String gen = "Generate Java HitBox Class";
+	private String gen = "Generate Example Java Class";
 	private String tab = abs;
 	private Data data = new Data();
 	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
@@ -57,11 +57,13 @@ public class HitboxCreator extends JFrame{
 	private int pointHeld = -1;
 	private Pane pane;
 	private Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	private int border = 0;
 	
 	public HitboxCreator() {
 		
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
+		this.setMinimumSize(new Dimension(350, 500));
 		
 		try{
 			getImageFromURL(new URL("http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi"));
@@ -85,7 +87,7 @@ public class HitboxCreator extends JFrame{
 							try {
 								getImageFromFile();
 								reset();
-								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+								pane.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
 								HitboxCreator.this.pack();
 								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
@@ -102,7 +104,7 @@ public class HitboxCreator extends JFrame{
 							try {
 								getImageFromURL();
 								reset();
-								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+								pane.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
 								HitboxCreator.this.pack();
 								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
@@ -128,8 +130,12 @@ public class HitboxCreator extends JFrame{
 		
 		setJMenuBar(new MyMenuBar());
 		
+		
 		pane = new Pane();
-		this.getContentPane().add(pane);
+		paneHolder.setLayout(new BorderLayout());
+		paneHolder.setBorder(new EmptyBorder(5, 5, 5, 5));
+		paneHolder.add(pane, BorderLayout.CENTER);
+		this.getContentPane().add(paneHolder);
 		this.getContentPane().add(data, BorderLayout.SOUTH);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.pack();
@@ -142,6 +148,8 @@ public class HitboxCreator extends JFrame{
 		updateData();
 		repaint();
 	}
+	
+	JPanel paneHolder = new JPanel();
 	
 	class Pane extends JPanel{
 		
@@ -185,7 +193,7 @@ public class HitboxCreator extends JFrame{
 				}
 			});
 			
-			this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+			this.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
 		}
 
 		@Override
@@ -195,10 +203,9 @@ public class HitboxCreator extends JFrame{
 			
 			g.drawImage(image, 0, 0, null);
 			g.setColor(Color.black);
-			g.drawRect(0,0,image.getWidth(), image.getHeight());
+			g.drawRect(0, 0, image.getWidth()-1, image.getHeight()-1);
 			
 			g.setColor(Color.red);
-			
 			
 			for (int i =0; i <poly.npoints; i++)
 				g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
