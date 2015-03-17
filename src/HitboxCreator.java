@@ -5,6 +5,7 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.function.IntUnaryOperator;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -57,13 +59,15 @@ public class HitboxCreator extends JFrame{
 	private int pointHeld = -1;
 	private Pane pane;
 	private Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-	private int border = 0;
+	private int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
+	private int screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
 	
 	public HitboxCreator() {
 		
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
 		this.setMinimumSize(new Dimension(350, 500));
+		this.setResizable(false);
 		
 		try{
 			getImageFromURL(new URL("http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi"));
@@ -87,7 +91,7 @@ public class HitboxCreator extends JFrame{
 							try {
 								getImageFromFile();
 								reset();
-								pane.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
+								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 								HitboxCreator.this.pack();
 								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
@@ -104,7 +108,7 @@ public class HitboxCreator extends JFrame{
 							try {
 								getImageFromURL();
 								reset();
-								pane.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
+								pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 								HitboxCreator.this.pack();
 								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
@@ -130,9 +134,9 @@ public class HitboxCreator extends JFrame{
 		
 		setJMenuBar(new MyMenuBar());
 		
-		
 		pane = new Pane();
-		paneHolder.setLayout(new BorderLayout());
+		
+		JPanel paneHolder = new JPanel();
 		paneHolder.setBorder(new EmptyBorder(5, 5, 5, 5));
 		paneHolder.add(pane, BorderLayout.CENTER);
 		this.getContentPane().add(paneHolder);
@@ -149,7 +153,7 @@ public class HitboxCreator extends JFrame{
 		repaint();
 	}
 	
-	JPanel paneHolder = new JPanel();
+	
 	
 	class Pane extends JPanel{
 		
@@ -193,7 +197,7 @@ public class HitboxCreator extends JFrame{
 				}
 			});
 			
-			this.setPreferredSize(new Dimension(image.getWidth() + border, image.getHeight() + border));
+			this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 		}
 
 		@Override
@@ -217,7 +221,6 @@ public class HitboxCreator extends JFrame{
 	
 	private void getImageFromFile() throws IOException{
 		JFileChooser chooser = new JFileChooser();
-		//chooser.setName("Choose an Image");
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		chooser.setFileFilter(new FileFilter() {
 			
@@ -243,24 +246,87 @@ public class HitboxCreator extends JFrame{
 		}
 		if (file != null) image = ImageIO.read(file);
 		else throw new IOException("File null");
-	}
-	
-	private void getImageFromURL(URL url) throws IOException{
-		image = ImageIO.read(url);
+		
+		autoScaleImage();
 	}
 	
 	private void getImageFromURL() throws IOException{
 		getImageFromURL(new URL(JOptionPane.showInputDialog("InsertLink:", "http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi")));
 	}
+
+	private void getImageFromURL(URL url) throws IOException{
+		image = ImageIO.read(url);
+		autoScaleImage();
+	}
+	
+	private void autoScaleImage(){
+		
+		int horizontalBorder = 280;
+		int verticalBorder = 10;
+		float zoomScale = .1f;
+		zoom = 1.0f;
+		
+		if (image.getWidth() * (zoom + zoomScale) < screenWidth - verticalBorder && image.getHeight() * (zoom + zoomScale) < screenHeight - horizontalBorder){
+			while (image.getWidth() * (zoom + zoomScale) < screenWidth - verticalBorder && image.getHeight() * (zoom + zoomScale) < screenHeight - horizontalBorder){
+				zoom += zoomScale;
+			}
+		}
+		else if (image.getWidth() * (zoom) > screenWidth - verticalBorder || image.getHeight() * (zoom) > screenHeight - horizontalBorder){
+			
+			System.out.println("Image must be less than: " + (screenWidth - verticalBorder) + " " + (screenHeight - horizontalBorder));
+			
+			while (image.getWidth() * (zoom) > screenWidth - verticalBorder || image.getHeight() * (zoom) > screenHeight - horizontalBorder){
+				zoom -= zoomScale;
+				System.out.println("Zoom: " + (zoom));
+				System.out.println(image.getWidth() * (zoom) + " " + image.getHeight() * (zoom));
+			}
+		}
+		else{
+			return;
+		}
+		
+		try{
+			image = toBufferedImage(image.getScaledInstance(Math.round(image.getWidth()*(zoom)), Math.round(image.getHeight()*(zoom)), BufferedImage.SCALE_SMOOTH));
+			pane.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+			repaint();
+			pack();
+			setLocationRelativeTo(null);
+		}catch(Exception e){};
+		
+		JOptionPane.showMessageDialog(null, "Image was autoscaled to " + Math.round(zoom*100) + "% for a better fit on your monitor");
+	}
+	
+	public static BufferedImage toBufferedImage(Image img)
+	{
+		//http://stackoverflow.com/questions/13605248/java-converting-image-to-bufferedimage
+		
+	    if (img instanceof BufferedImage)
+	    {
+	        return (BufferedImage) img;
+	    }
+
+	    // Create a buffered image with transparency
+	    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+	    // Draw the image on to the buffered image
+	    Graphics2D bGr = bimage.createGraphics();
+	    bGr.drawImage(img, 0, 0, null);
+	    bGr.dispose();
+
+	    // Return the buffered image
+	    return bimage;
+	}
+	
+	float zoom = 1.0f;
 	
 	private void updateData() {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				if (tab.equals(abs)){
-					data.absolute.xxx.setText(Arrays.toString(poly.xpoints));
-					data.absolute.yyy.setText(Arrays.toString(poly.ypoints));
-					data.absolute.ppp.setText(Arrays.deepToString(toPoints(poly.xpoints, poly.ypoints)));
+					data.absolute.xxx.setText(Arrays.toString(scaleToZoom(poly.xpoints)));
+					data.absolute.yyy.setText(Arrays.toString(scaleToZoom(poly.ypoints)));
+					data.absolute.ppp.setText(Arrays.deepToString(toPoints(scaleToZoom(poly.xpoints), scaleToZoom(poly.ypoints))));
 				}
 				
 				else if (tab.equals(rel)){
@@ -434,11 +500,11 @@ public class HitboxCreator extends JFrame{
 								String next = scan.nextLine();
 								
 								if (next.contains("/*<Insert xCoords Here>*/")){
-									String xs = Arrays.toString(poly.xpoints);
+									String xs = Arrays.toString(scaleToZoom(poly.xpoints));
 									next = next.replace("/*<Insert xCoords Here>*/", xs.substring(1, xs.length()-1));
 								}
 								else if (next.contains("/*<Insert yCoords Here>*/")){
-									String ys = Arrays.toString(poly.ypoints);
+									String ys = Arrays.toString(scaleToZoom(poly.ypoints));
 									next = next.replace("/*<Insert yCoords Here>*/", ys.substring(1, ys.length()-1));
 								}
 								else{
@@ -635,6 +701,13 @@ public class HitboxCreator extends JFrame{
 			}
 		}
 		
+	}
+	
+	public int[] scaleToZoom(int[] points){
+		int[] temp = points.clone();
+		for (int i=0; i < temp.length; i++)
+			temp[i] = Math.round(temp[i] / zoom);
+		return temp;
 	}
 
 	public void say(Object o){
