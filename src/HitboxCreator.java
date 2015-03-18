@@ -52,7 +52,7 @@ public class HitboxCreator extends JFrame{
 	private String abs = "Absolute";
 	private String rel = "Relative/Ratio";
 	private String gen = "Generate Example Java Class";
-	private String opt = "Options";
+	//private String opt = "Options";
 	private String tab = abs;
 	private Data data = new Data();
 	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
@@ -73,12 +73,16 @@ public class HitboxCreator extends JFrame{
 		try{
 			getImageFromURL(new URL("http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi"));
 		} catch (IOException e) {
-			try {
-				getImageFromFile();
-			} catch (IOException e1) {
-				System.exit(0);
-				e1.printStackTrace();
+			while (true){
+				try {
+					getImageFromFile();
+					break;
+				} catch (IOException e1) {
+					JOptionPane.showMessageDialog(HitboxCreator.this, "Failed to load Image");
+					e1.printStackTrace();
+				}
 			}
+			
 		}
 		
 		class MyMenuBar extends JMenuBar{
@@ -97,6 +101,7 @@ public class HitboxCreator extends JFrame{
 								HitboxCreator.this.setLocationRelativeTo(null);
 								repaint();
 							} catch (IOException e1) {
+								JOptionPane.showMessageDialog(HitboxCreator.this, "Failed to load Image");
 								e1.printStackTrace();
 							}
 						}
@@ -115,6 +120,7 @@ public class HitboxCreator extends JFrame{
 								repaint();
 							} catch (IOException e1) {
 								e1.printStackTrace();
+								JOptionPane.showMessageDialog(HitboxCreator.this, "Failed to load Image");
 							}
 						}
 					});
