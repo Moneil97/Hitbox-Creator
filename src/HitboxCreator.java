@@ -28,6 +28,7 @@ import java.util.function.IntUnaryOperator;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -48,10 +49,11 @@ import javax.swing.filechooser.FileFilter;
 public class HitboxCreator extends JFrame{
 
 	private BufferedImage image;
-	private String help = "Help";
+	private String hlp = "Help";
 	private String abs = "Absolute";
 	private String rel = "Relative/Ratio";
 	private String gen = "Generate Example Java Class";
+	private String opt = "Options";
 	private String tab = abs;
 	private Data data = new Data();
 	private Polygon poly = new Polygon2(new int[]{}, new int[]{}, 0);
@@ -66,8 +68,8 @@ public class HitboxCreator extends JFrame{
 		
 		this.setTitle("HitboxCreator (Cameron O'Neil)");
 		this.setSize(900, 700);
-		this.setMinimumSize(new Dimension(350, 500));
-		this.setResizable(false);
+		this.setMinimumSize(new Dimension(385, 500));
+		//this.setResizable(false);
 		
 		try{
 			getImageFromURL(new URL("http://washhumane.typepad.com/.a/6a00e54eed855d8834017ee9cf65f4970d-pi"));
@@ -209,12 +211,13 @@ public class HitboxCreator extends JFrame{
 			g.setColor(Color.black);
 			g.drawRect(0, 0, image.getWidth()-1, image.getHeight()-1);
 			
-			g.setColor(Color.red);
-			
+			//g.setColor(color);
+			g.setColor(new Color(color.getRed()/255.0f, color.getGreen()/255.0f, color.getBlue()/255.0f, .7f));
 			for (int i =0; i <poly.npoints; i++)
 				g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
 			
-			g.setColor(new Color(1,0,0,.5f));
+			//g.setColor(new Color(1,0,0,.5f));
+			g.setColor(new Color(color.getRed()/255.0f, color.getGreen()/255.0f, color.getBlue()/255.0f, .5f));
 			g.fill(poly);
 		}
 	}
@@ -263,7 +266,7 @@ public class HitboxCreator extends JFrame{
 		
 		int horizontalBorder = 280;
 		int verticalBorder = 10;
-		float zoomScale = .1f;
+		float zoomScale = .01f;
 		zoom = 1.0f;
 		
 		if (image.getWidth() * (zoom + zoomScale) < screenWidth - verticalBorder && image.getHeight() * (zoom + zoomScale) < screenHeight - horizontalBorder){
@@ -298,8 +301,6 @@ public class HitboxCreator extends JFrame{
 	
 	public static BufferedImage toBufferedImage(Image img)
 	{
-		//http://stackoverflow.com/questions/13605248/java-converting-image-to-bufferedimage
-		
 	    if (img instanceof BufferedImage)
 	    {
 	        return (BufferedImage) img;
@@ -358,18 +359,23 @@ public class HitboxCreator extends JFrame{
 		});
 	}
 	
+	Color color = Color.red;
+	
 	class Data extends JTabbedPane{
 		
 		private AbsoluteAndRelative absolute = new AbsoluteAndRelative();
 		private AbsoluteAndRelative relative = new AbsoluteAndRelative();
 		private Generate generate = new Generate();
+		private Options options = new Options();
+		private Help help = new Help();
 		
 		public Data() {
 			
 			add(abs, absolute);
 			add(rel, relative);
 			add(gen, generate);
-			add(help , new Help());
+			add(opt, options);
+			add(hlp , help);
 			
 			setPreferredSize(new Dimension(0, 145));
 			
@@ -380,6 +386,25 @@ public class HitboxCreator extends JFrame{
 					updateData();
 				}
 			});
+		}
+		
+		class Options extends JPanel{
+			
+			public Options() {
+
+				JButton colorButton = new JButton ("Change Color");
+				colorButton.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						color = JColorChooser.showDialog(HitboxCreator.this, "Chose a color:", color);
+						HitboxCreator.this.repaint();
+					}
+				});
+				this.add(colorButton);
+				
+				
+			}
+			
 		}
 		
 		class Help extends JPanel{
@@ -609,7 +634,7 @@ public class HitboxCreator extends JFrame{
 				
 				bottom.add(absolute);
 				bottom.add(relative);
-				this.add(bottom, BorderLayout.SOUTH);
+				this.add(bottom, BorderLayout.CENTER);
 			}
 			
 		}
