@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Scanner;
-import java.util.function.IntUnaryOperator;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -39,6 +38,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -155,8 +155,6 @@ public class HitboxCreator extends JFrame{
 		repaint();
 	}
 	
-	
-	
 	class Pane extends JPanel{
 		
 		public Pane(){
@@ -211,12 +209,10 @@ public class HitboxCreator extends JFrame{
 			g.setColor(Color.black);
 			g.drawRect(0, 0, image.getWidth()-1, image.getHeight()-1);
 			
-			//g.setColor(color);
 			g.setColor(new Color(color.getRed()/255.0f, color.getGreen()/255.0f, color.getBlue()/255.0f, .7f));
 			for (int i =0; i <poly.npoints; i++)
 				g.fillRect(poly.xpoints[i] -5, poly.ypoints[i] -5, 10, 10);
 			
-			//g.setColor(new Color(1,0,0,.5f));
 			g.setColor(new Color(color.getRed()/255.0f, color.getGreen()/255.0f, color.getBlue()/255.0f, .5f));
 			g.fill(poly);
 		}
@@ -296,7 +292,9 @@ public class HitboxCreator extends JFrame{
 			setLocationRelativeTo(null);
 		}catch(Exception e){};
 		
-		JOptionPane.showMessageDialog(null, "Image was autoscaled to " + Math.round(zoom*100) + "% for a better fit on your monitor");
+		data.options.zoomOP.zoomText.setText(Math.round(zoom*100) + "%");
+		
+		JOptionPane.showMessageDialog(null, "Image was autoscaled to " + Math.round(zoom*100) + "% for a better fit on your monitor\nCoordinates for the hitbox will be scaled accordingly");
 	}
 	
 	public static BufferedImage toBufferedImage(Image img)
@@ -390,8 +388,10 @@ public class HitboxCreator extends JFrame{
 		
 		class Options extends JPanel{
 			
+			private ZoomOptions zoomOP;
+			
 			public Options() {
-
+				this.setLayout(new BorderLayout());
 				JButton colorButton = new JButton ("Change Color");
 				colorButton.addActionListener(new ActionListener() {
 					@Override
@@ -400,11 +400,37 @@ public class HitboxCreator extends JFrame{
 						HitboxCreator.this.repaint();
 					}
 				});
-				this.add(colorButton);
 				
-				
+				zoomOP = new ZoomOptions();
+				this.add(zoomOP);
+				this.add(colorButton, BorderLayout.SOUTH);
 			}
 			
+		}
+	
+		class ZoomOptions extends JPanel {
+
+			JTextField zoomText;
+			
+			public ZoomOptions() {
+
+				JLabel lblZoom = new JLabel("Zoom:");
+				add(lblZoom);
+
+				JButton button = new JButton("-");
+				
+				add(button);
+
+				zoomText = new JTextField();
+				zoomText.setHorizontalAlignment(SwingConstants.CENTER);
+				zoomText.setText(zoom + "%");
+				zoomText.setColumns(10);
+				zoomText.setEditable(false);
+				add(zoomText);
+
+				JButton button_1 = new JButton("+");
+				add(button_1);
+			}
 		}
 		
 		class Help extends JPanel{
@@ -413,26 +439,32 @@ public class HitboxCreator extends JFrame{
 				setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 				
 				JLabel lblRightMouse = new JLabel("Right Mouse: Add Hitbox Point (Min of 3)");
+				lblRightMouse.setToolTipText(lblRightMouse.getText());
 				lblRightMouse.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(lblRightMouse);
 				
 				JLabel lblLeftMouse = new JLabel("Left Mouse: Move Selected Hitbox Point");
+				lblLeftMouse.setToolTipText(lblLeftMouse.getText());
 				lblLeftMouse.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(lblLeftMouse);
 				
 				JLabel lblAbsolute = new JLabel("Absolute Positioning: Faster, Only use if object stays the same width and height");
+				lblAbsolute.setToolTipText(lblAbsolute.getText());
 				lblAbsolute.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(lblAbsolute);
 				
 				JLabel lblRelative = new JLabel("Relative Positioning: Slower, will adjust with the object's width and height");
+				lblRelative.setToolTipText(lblRelative.getText());
 				lblRelative.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(lblRelative);
 				
 				JLabel note = new JLabel("Note: Do NOT crop the image later. However, If you are using relative you may stretch or shrink it");
+				note.setToolTipText(note.getText());
 				note.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(note);
 				
 				JLabel note2 = new JLabel("Note: With Relative you do not have to maintain aspect ratio");
+				note2.setToolTipText(note2.getText());
 				note2.setBorder(new EmptyBorder(5, 8, 0, 0));
 				add(note2);
 			}
@@ -511,7 +543,7 @@ public class HitboxCreator extends JFrame{
 				
 				this.setLayout(new BorderLayout());
 				
-				JPanel bottom = new JPanel();
+				JPanel holder = new JPanel();
 				
 				JButton absolute = new JButton("Generate Java Class for Absolute Positioning");
 				absolute.addActionListener(new ActionListener() {
@@ -632,9 +664,9 @@ public class HitboxCreator extends JFrame{
 					}
 				});
 				
-				bottom.add(absolute);
-				bottom.add(relative);
-				this.add(bottom, BorderLayout.CENTER);
+				holder.add(absolute);
+				holder.add(relative);
+				this.add(holder, BorderLayout.CENTER);
 			}
 			
 		}
