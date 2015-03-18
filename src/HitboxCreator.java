@@ -129,6 +129,15 @@ public class HitboxCreator extends JFrame{
 						}
 					});
 					tools.add(reset);
+					JMenuItem changeColor = new JMenuItem("Change Color");
+					changeColor.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							color = JColorChooser.showDialog(HitboxCreator.this, "Chose a color:", color);
+							HitboxCreator.this.repaint();
+						}
+					});
+					tools.add(changeColor);
 				this.add(tools);
 			}
 		}
@@ -361,7 +370,7 @@ public class HitboxCreator extends JFrame{
 		private AbsoluteAndRelative absolute = new AbsoluteAndRelative();
 		private AbsoluteAndRelative relative = new AbsoluteAndRelative();
 		private Generate generate = new Generate();
-		private Options options = new Options();
+		//private Options options = new Options();
 		private Help help = new Help();
 		
 		public Data() {
@@ -369,7 +378,7 @@ public class HitboxCreator extends JFrame{
 			add(abs, absolute);
 			add(rel, relative);
 			add(gen, generate);
-			add(opt, options);
+			//add(opt, options);
 			add(hlp , help);
 			
 			setPreferredSize(new Dimension(0, 145));
