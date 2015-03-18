@@ -38,7 +38,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -292,8 +291,6 @@ public class HitboxCreator extends JFrame{
 			setLocationRelativeTo(null);
 		}catch(Exception e){};
 		
-		data.options.zoomOP.zoomText.setText(Math.round(zoom*100) + "%");
-		
 		JOptionPane.showMessageDialog(null, "Image was autoscaled to " + Math.round(zoom*100) + "% for a better fit on your monitor\nCoordinates for the hitbox will be scaled accordingly");
 	}
 	
@@ -388,10 +385,8 @@ public class HitboxCreator extends JFrame{
 		
 		class Options extends JPanel{
 			
-			private ZoomOptions zoomOP;
-			
 			public Options() {
-				this.setLayout(new BorderLayout());
+
 				JButton colorButton = new JButton ("Change Color");
 				colorButton.addActionListener(new ActionListener() {
 					@Override
@@ -401,36 +396,9 @@ public class HitboxCreator extends JFrame{
 					}
 				});
 				
-				zoomOP = new ZoomOptions();
-				this.add(zoomOP);
-				this.add(colorButton, BorderLayout.SOUTH);
+				this.add(colorButton);
 			}
 			
-		}
-	
-		class ZoomOptions extends JPanel {
-
-			JTextField zoomText;
-			
-			public ZoomOptions() {
-
-				JLabel lblZoom = new JLabel("Zoom:");
-				add(lblZoom);
-
-				JButton button = new JButton("-");
-				
-				add(button);
-
-				zoomText = new JTextField();
-				zoomText.setHorizontalAlignment(SwingConstants.CENTER);
-				zoomText.setText(zoom + "%");
-				zoomText.setColumns(10);
-				zoomText.setEditable(false);
-				add(zoomText);
-
-				JButton button_1 = new JButton("+");
-				add(button_1);
-			}
 		}
 		
 		class Help extends JPanel{
